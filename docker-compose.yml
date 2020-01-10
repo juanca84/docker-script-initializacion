@@ -1,0 +1,27 @@
+version: '3.6'
+
+services:
+  postgres:
+    #env_file: .env
+    image: postgres:latest
+    ports:
+      - "5432:5432"
+    configs:
+      - source: database_initialization
+        target: "./docker-entrypoint-initdb.d/create-db.sh"
+        #Grant read and execute permission to owner, execute and read to group and others
+        mode: 0755
+        #The uid for root is due to the permissions for the init.db folder for image
+        uid: "0"
+    volumes:
+    #   - backend-db:/var/lib/postgresql/data
+      - ./hcheck.sh:/hcheck.sh
+    #  - ./init.sh:/docker-entrypoint-initdb.d/init.sh
+    healthcheck:
+      test: ["CMD-SHELL", "sh /hcheck.sh"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+configs:
+  database_initialization:
+    file: ./docker-entrypoint-initdb.d/create-db.sh
